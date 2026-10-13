@@ -1,0 +1,150 @@
+<div align="center">
+
+  <img src="docs/screenshots/app-icon.png" width="128" height="128" alt="Markdown Studio Icon" />
+
+  # Markdown Studio
+
+  **A sleek, native macOS GitHub Flavored Markdown (GFM) editor with live WYSIWYG editing, relative image persistence, and inline diagramming.**
+
+  [![Platform: macOS](https://img.shields.io/badge/platform-macOS%20%28Apple%20Silicon%20%26%20Intel%29-black?logo=apple)](https://github.com/jameslloyd/markdownstudio)
+  [![Standard: GFM](https://img.shields.io/badge/spec-GitHub%20Flavored%20Markdown-181717?logo=github)](https://github.github.com/gfm/)
+  [![Diagrams: Mermaid](https://img.shields.io/badge/diagrams-Mermaid%2012-ff3670?logo=mermaid)](https://mermaid.js.org/)
+  [![Architecture: Electron + React](https://img.shields.io/badge/stack-Electron%20%7C%20React%20%7C%20TipTap-47a248)](https://github.com/jameslloyd/markdownstudio)
+
+</div>
+
+---
+
+## 📸 Screenshots
+
+### 1. Typora / Notion-Style WYSIWYG Editor with Live Mermaid Architecture Diagram
+> Seamlessly edit rendered Markdown with live diagrams, interactive checklists, and formatted tables. Toggle to raw source mode anytime with <kbd>Cmd</kbd> + <kbd>E</kbd>.
+
+<p align="center">
+  <img src="docs/screenshots/editor-wysiwyg.png" width="95%" alt="Markdown Studio WYSIWYG Editor" />
+</p>
+
+---
+
+### 2. Built-in Diagram Presets (Mermaid & PlantUML)
+> Insert Flowcharts, Sequence Diagrams, Class Diagrams, State Machines, Git Graphs, and Mindmaps with one click.
+
+<p align="center">
+  <img src="docs/screenshots/diagram-modal.png" width="75%" alt="Diagram Insertion Modal" />
+</p>
+
+---
+
+### 3. Application Preferences & Relative Image Settings
+> Configure relative image folder destination (e.g., `./assets`, `./images`), naming conventions, PlantUML rendering server, and auto-save timers.
+
+<p align="center">
+  <img src="docs/screenshots/settings-modal.png" width="75%" alt="Markdown Studio Settings Modal" />
+</p>
+
+---
+
+## ✨ Features
+
+- **GitHub Flavored Markdown (GFM)**:
+  - First-class support for tables, checklists / task lists (`- [x]`), blockquotes, code blocks with language indicators, strikethrough, and links.
+- **Typora / Notion-Style WYSIWYG**:
+  - Live in-place document editing with interactive task check-boxes and table column/row controls.
+  - **Source Mode Toggle (<kbd>Cmd</kbd> + <kbd>E</kbd>)**: Instant bidirectional sync between live WYSIWYG and raw monospace markdown text.
+- **Relative Image Pasting & Drag-and-Drop**:
+  - Copy any screenshot or graphic to your clipboard and paste directly (<kbd>Cmd</kbd> + <kbd>V</kbd>) into the editor.
+  - Automatically writes the image to disk relative to the current Markdown document (e.g. `./assets/image-YYYYMMDD-HHMMSS.png`).
+  - Supports drag-and-drop of image files from Finder.
+  - Renders immediately via a sandboxed custom local file protocol (`md-local://`).
+- **Diagramming Support (Mermaid & PlantUML)**:
+  - **Mermaid**: 100% local, client-side offline SVG engine with live in-place code editing, syntax error validation, and SVG export.
+  - **PlantUML**: Live diagram rendering via URL Deflate encoding with configurable server endpoints.
+- **macOS Native Aesthetics & Integration**:
+  - Native macOS inset titlebar (`hiddenInset`) with integrated traffic light buttons.
+  - System application menu with full keyboard shortcuts (<kbd>Cmd</kbd> + <kbd>N</kbd>, <kbd>Cmd</kbd> + <kbd>O</kbd>, <kbd>Cmd</kbd> + <kbd>S</kbd>, <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, <kbd>Cmd</kbd> + <kbd>,</kbd>).
+  - Collapsible Table of Contents (Outline) drawer, word and character counters, and reading time estimation.
+  - Glassmorphic dark theme and crisp light theme.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- macOS 12+ (Apple Silicon or Intel)
+- Node.js (v18+)
+- npm
+
+### Installation
+Clone the repository and install dependencies:
+```bash
+git clone https://github.com/jameslloyd/markdownstudio.git
+cd markdownstudio
+npm install
+```
+
+### Running Locally
+- **Development Mode** (with Vite live hot-reload & Electron):
+  ```bash
+  npm run dev
+  ```
+
+- **Local Run** (Compiles frontend and launches Electron):
+  ```bash
+  npm run build
+  npm start
+  ```
+
+---
+
+## 📦 Compiling Native macOS Application
+
+Build the standalone `.app` bundle, `.dmg` installer, and `.zip` archive:
+
+```bash
+# Compile macOS .dmg installer and .app bundle
+npm run dist
+```
+
+Generated artifacts are stored in the `release/` directory:
+- `release/Markdown Studio-1.0.0-arm64.dmg` — Drag-and-drop macOS installer
+- `release/mac-arm64/Markdown Studio.app` — Standalone macOS application bundle
+- `release/Markdown Studio-1.0.0-arm64-mac.zip` — Portable distribution archive
+
+To launch the compiled app immediately:
+```bash
+open "release/mac-arm64/Markdown Studio.app"
+```
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Description |
+| :--- | :--- |
+| <kbd>Cmd</kbd> + <kbd>N</kbd> | New Document |
+| <kbd>Cmd</kbd> + <kbd>O</kbd> | Open Markdown File... |
+| <kbd>Cmd</kbd> + <kbd>S</kbd> | Save Document |
+| <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> | Save Document As... |
+| <kbd>Cmd</kbd> + <kbd>E</kbd> | Toggle WYSIWYG / Raw Source Mode |
+| <kbd>Cmd</kbd> + <kbd>,</kbd> | Preferences & Settings |
+| <kbd>Cmd</kbd> + <kbd>B</kbd> | Bold Text |
+| <kbd>Cmd</kbd> + <kbd>I</kbd> | Italic Text |
+| <kbd>Cmd</kbd> + <kbd>Z</kbd> | Undo |
+| <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd> | Redo |
+
+---
+
+## ⚙️ Settings & Customization
+
+Click the **Preferences** gear icon or press <kbd>Cmd</kbd> + <kbd>,</kbd> to configure:
+1. **Image Save Location**: Relative directory path for pasted images (e.g. `./assets`, `./images`, `attachments`).
+2. **Filename Pattern**: Customize auto-generated filenames (tokens: `{timestamp}`, `{date}`, `{time}`).
+3. **PlantUML Server**: URL endpoint for PlantUML diagrams (default: official server or your local container).
+4. **Theme**: Switch between Dark (macOS Glass) and Light mode.
+5. **Auto-save**: Enable background auto-saving and adjust the timer interval.
+
+---
+
+## 📄 License
+
+MIT License. Open source for all markdown enthusiasts.
