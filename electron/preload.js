@@ -8,6 +8,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFile: ({ filePath, content }) => ipcRenderer.invoke('file:save', { filePath, content }),
   saveFileAs: ({ content, defaultName }) => ipcRenderer.invoke('dialog:saveFileAs', { content, defaultName }),
   readFile: (filePath) => ipcRenderer.invoke('file:read', filePath),
+  pickMarkdownFile: (currentFilePath) => ipcRenderer.invoke('dialog:pickMarkdownFile', currentFilePath),
+  openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
+  resolveRelativePath: (data) => ipcRenderer.invoke('app:resolveRelativePath', data),
 
   // Image pasting and handling
   savePastedImage: ({ buffer, ext, currentFilePath }) =>

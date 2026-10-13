@@ -132,6 +132,32 @@ export default function App() {
     }
   };
 
+  // Handle navigation to linked markdown file (from clicking a link inside editor)
+  const handleNavigateToFile = useCallback(async (relOrAbsPath) => {
+    if (!window.electronAPI) return;
+
+    let targetPath = relOrAbsPath;
+    if (filePathRef.current && !relOrAbsPath.startsWith('/')) {
+      const res = await window.electronAPI.resolveRelativePath({
+        relativePath: relOrAbsPath,
+        currentFilePath: filePathRef.current,
+      });
+      if (res && res.exists) {
+        targetPath = res.absolutePath;
+      }
+    }
+
+    const res = await window.electronAPI.readFile(targetPath);
+    if (res && res.success) {
+      setFilePath(targetPath);
+      setFileName(res.fileName);
+      setMarkdown(res.content);
+      setIsDirty(false);
+    } else {
+      console.warn(`Could not open linked file: ${relOrAbsPath}`);
+    }
+  }, []);
+
   // Handle New File
   const handleNewFile = useCallback(() => {
     setFilePath(null);
@@ -346,6 +372,7 @@ export default function App() {
               currentBaseDir={currentBaseDir}
               settings={settings}
               onSaveRequest={handleSave}
+              onNavigateToFile={handleNavigateToFile}
             />
           ) : (
             <SourceEditor

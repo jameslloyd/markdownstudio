@@ -22,10 +22,13 @@ import {
   Undo2,
   Redo2,
   Sparkles,
+  FileSymlink,
+  Link as LinkIcon,
+  Unlink,
 } from 'lucide-react';
 import DiagramModal from './DiagramModal';
 
-export default function Toolbar({ editor, onSaveRequest }) {
+export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
   const [isDiagramModalOpen, setIsDiagramModalOpen] = useState(false);
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
 
@@ -67,6 +70,48 @@ export default function Toolbar({ editor, onSaveRequest }) {
       }
     };
     input.click();
+  };
+
+  const handleLinkMarkdownFile = async () => {
+    if (!window.electronAPI) return;
+    try {
+      const res = await window.electronAPI.pickMarkdownFile(currentFilePath);
+      if (res && !res.canceled && res.relativePath) {
+        const { state } = editor.view;
+        const { empty } = state.selection;
+
+        if (empty) {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: 'text',
+              text: res.displayName,
+              marks: [{ type: 'link', attrs: { href: res.relativePath } }],
+            })
+            .run();
+        } else {
+          editor.chain().focus().setLink({ href: res.relativePath }).run();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to link markdown file:', err);
+    }
+  };
+
+  const handleToggleWebLink = () => {
+    if (editor.isActive('link')) {
+      editor.chain().focus().unsetLink().run();
+      return;
+    }
+    const previousUrl = editor.getAttributes('link').href || '';
+    const url = window.prompt('Enter link URL (web address or path):', previousUrl || 'https://');
+    if (url === null) return;
+    if (url.trim() === '') {
+      editor.chain().focus().unsetLink().run();
+    } else {
+      editor.chain().focus().setLink({ href: url.trim() }).run();
+    }
   };
 
   return (
@@ -159,6 +204,28 @@ export default function Toolbar({ editor, onSaveRequest }) {
             title="Inline Code"
           >
             <Code size={15} />
+          </button>
+        </div>
+
+        <div className="toolbar-divider" />
+
+        {/* Links & Document Linking */}
+        <div className="toolbar-group">
+          <button
+            type="button"
+            className="toolbar-btn"
+            onClick={handleLinkMarkdownFile}
+            title="Link to Markdown Document (.md)"
+          >
+            <FileSymlink size={15} color="#818cf8" />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('link') ? 'active' : ''}`}
+            onClick={handleToggleWebLink}
+            title={editor.isActive('link') ? 'Remove Link' : 'Insert Web Link'}
+          >
+            {editor.isActive('link') ? <Unlink size={15} /> : <LinkIcon size={15} />}
           </button>
         </div>
 

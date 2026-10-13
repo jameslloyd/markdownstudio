@@ -303,6 +303,54 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
+/* Links */
+.ProseMirror a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ProseMirror a:hover {
+  color: var(--accent-primary-hover);
+}
+
+/* Document Links (.md or relative file paths) */
+.ProseMirror a[href$=".md"],
+.ProseMirror a[href*=".md#"],
+.ProseMirror a[href^="./"],
+.ProseMirror a[href^="../"] {
+  color: var(--accent-secondary);
+  font-weight: 500;
+  background: rgba(129, 140, 248, 0.12);
+  padding: 1px 7px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ProseMirror a[href$=".md"]::before,
+.ProseMirror a[href*=".md#"]::before,
+.ProseMirror a[href^="./"]::before,
+.ProseMirror a[href^="../"]::before {
+  content: "📄";
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.ProseMirror a[href$=".md"]:hover,
+.ProseMirror a[href*=".md#"]:hover,
+.ProseMirror a[href^="./"]:hover,
+.ProseMirror a[href^="../"]:hover {
+  background: rgba(129, 140, 248, 0.22);
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.45);
+}
+
 /* Horizontal Rule */
 .ProseMirror hr {
   border: none;

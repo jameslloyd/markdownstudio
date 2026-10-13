@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, protocol, net, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -409,3 +409,67 @@ ipcMain.handle('app:resolveImagePath', async (event, { relativePath, currentFile
     return { exists: false, error: err.message };
   }
 });
+
+ipcMain.handle('dialog:pickMarkdownFile', async (event, currentFilePath) => {
+  let defaultDir = currentFilePath
+    ? path.dirname(currentFilePath)
+    : app.getPath('documents');
+
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Select Markdown File to Link',
+    defaultPath: defaultDir,
+    properties: ['openFile'],
+    filters: [
+      { name: 'Markdown Files', extensions: ['md', 'markdown', 'mdown', 'mkd', 'txt'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return { canceled: true };
+  }
+
+  const targetFilePath = result.filePaths[0];
+  let relativePath = targetFilePath;
+  if (currentFilePath) {
+    const baseDir = path.dirname(currentFilePath);
+    let rel = path.relative(baseDir, targetFilePath);
+    rel = rel.split(path.sep).join('/');
+    if (!rel.startsWith('.') && !rel.startsWith('/')) {
+      rel = `./${rel}`;
+    }
+    relativePath = rel;
+  }
+
+  const ext = path.extname(targetFilePath);
+  const baseName = path.basename(targetFilePath, ext);
+
+  return {
+    canceled: false,
+    targetFilePath,
+    relativePath,
+    displayName: baseName,
+  };
+});
+
+ipcMain.handle('app:openExternal', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('app:resolveRelativePath', async (event, { relativePath, currentFilePath }) => {
+  try {
+    let baseDir = currentFilePath
+      ? path.dirname(currentFilePath)
+      : app.getPath('documents');
+    const resolved = path.resolve(baseDir, relativePath);
+    return { exists: fs.existsSync(resolved), absolutePath: resolved };
+  } catch (err) {
+    return { exists: false, error: err.message };
+  }
+});
+

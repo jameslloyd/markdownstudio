@@ -6,6 +6,7 @@ import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import { Markdown } from 'tiptap-markdown';
+import { Link } from '@tiptap/extension-link';
 
 import { MermaidExtension, PlantUMLExtension } from '../extensions/DiagramExtension';
 import { CustomImage } from '../extensions/CustomImage';
@@ -18,6 +19,7 @@ export default function Editor({
   currentBaseDir,
   settings,
   onSaveRequest,
+  onNavigateToFile,
 }) {
   const isUpdatingFromProp = useRef(false);
 
@@ -114,6 +116,14 @@ export default function Editor({
       Placeholder.configure({
         placeholder: 'Write your story, design with diagrams, or paste images...',
       }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: 'https',
+        HTMLAttributes: {
+          class: 'editor-link',
+        },
+      }),
       Markdown.configure({
         html: true,
         tightLists: true,
@@ -122,6 +132,26 @@ export default function Editor({
     ],
     content: prepareContentForEditor(markdown),
     editorProps: {
+      handleClick(view, pos, event) {
+        const target = event.target;
+        const linkEl = target.tagName === 'A' ? target : target.closest('a');
+        if (linkEl) {
+          const href = linkEl.getAttribute('href');
+          if (href) {
+            event.preventDefault();
+            if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:')) {
+              window.electronAPI?.openExternal(href);
+            } else {
+              // Local or relative markdown file link
+              if (onNavigateToFile) {
+                onNavigateToFile(href);
+              }
+            }
+            return true;
+          }
+        }
+        return false;
+      },
       handlePaste(view, event) {
         const items = event.clipboardData?.items;
         if (!items) return false;
@@ -173,7 +203,11 @@ export default function Editor({
 
   return (
     <div className="editor-wrapper">
-      <Toolbar editor={editor} onSaveRequest={onSaveRequest} />
+      <Toolbar
+        editor={editor}
+        currentFilePath={currentFilePath}
+        onSaveRequest={onSaveRequest}
+      />
       <div className="editor-scroll-area">
         <div className="editor-content-area">
           <EditorContent editor={editor} />
