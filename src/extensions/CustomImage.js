@@ -15,6 +15,31 @@ export const CustomImage = Image.extend({
       title: {
         default: null,
       },
+      width: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('width') || element.style.width || null,
+        renderHTML: (attributes) => (attributes.width ? { width: attributes.width } : {}),
+      },
+      height: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('height') || element.style.height || null,
+        renderHTML: (attributes) => (attributes.height ? { height: attributes.height } : {}),
+      },
+      align: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('align') || null,
+        renderHTML: (attributes) => (attributes.align ? { align: attributes.align } : {}),
+      },
+      style: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('style') || null,
+        renderHTML: (attributes) => (attributes.style ? { style: attributes.style } : {}),
+      },
+      class: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('class') || null,
+        renderHTML: (attributes) => (attributes.class ? { class: attributes.class } : {}),
+      },
       'data-relative-src': {
         default: null,
       },
@@ -47,5 +72,37 @@ export const CustomImage = Image.extend({
         'data-relative-src': relSrc || src,
       },
     ];
+  },
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state, node) {
+          const src = node.attrs['data-relative-src'] || node.attrs.src || '';
+          const alt = node.attrs.alt || '';
+          const width = node.attrs.width;
+          const height = node.attrs.height;
+          const align = node.attrs.align;
+          const style = node.attrs.style;
+          const className = node.attrs.class;
+
+          // If HTML-specific attributes are used, serialize as <img> tag
+          if (width || height || align || style || className) {
+            let imgTag = `<img src="${src}"`;
+            if (alt) imgTag += ` alt="${alt}"`;
+            if (width) imgTag += ` width="${width}"`;
+            if (height) imgTag += ` height="${height}"`;
+            if (align) imgTag += ` align="${align}"`;
+            if (className) imgTag += ` class="${className}"`;
+            if (style) imgTag += ` style="${style}"`;
+            imgTag += ' />';
+            state.write(imgTag);
+          } else {
+            // Standard Markdown image tag
+            state.write(`![${alt}](${src})`);
+          }
+        },
+      },
+    };
   },
 });

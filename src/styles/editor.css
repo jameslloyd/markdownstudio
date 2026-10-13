@@ -358,6 +358,121 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
   margin: 2em 0;
 }
 
+/* GFM HTML Elements Support */
+.ProseMirror div[align="center"],
+.ProseMirror div.center,
+.ProseMirror center,
+.ProseMirror p[align="center"],
+.ProseMirror h1[align="center"],
+.ProseMirror h2[align="center"],
+.ProseMirror h3[align="center"],
+.ProseMirror h4[align="center"] {
+  text-align: center;
+}
+
+.ProseMirror div[align="right"],
+.ProseMirror p[align="right"],
+.ProseMirror h1[align="right"],
+.ProseMirror h2[align="right"],
+.ProseMirror h3[align="right"] {
+  text-align: right;
+}
+
+.ProseMirror div[align="left"],
+.ProseMirror p[align="left"] {
+  text-align: left;
+}
+
+.ProseMirror div[align="center"] > *,
+.ProseMirror center > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ProseMirror div[align="center"] img,
+.ProseMirror center img {
+  display: inline-block;
+  margin: 4px 6px;
+  vertical-align: middle;
+}
+
+/* GFM Keyboard Keycaps (<kbd>) */
+.ProseMirror kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-main);
+  background-color: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+  border-bottom: 2px solid var(--border-subtle);
+  border-radius: 4px;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  margin: 0 2px;
+  vertical-align: baseline;
+}
+
+/* GFM Collapsible Accordions (<details> & <summary>) */
+.ProseMirror details {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  margin: 1.2em 0;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ProseMirror details[open] {
+  background: var(--bg-surface);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.ProseMirror summary {
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  outline: none;
+  padding: 4px 0;
+  user-select: none;
+  display: list-item;
+}
+
+.ProseMirror summary:hover {
+  color: var(--accent-primary);
+}
+
+.ProseMirror details > :not(summary) {
+  margin-top: 10px;
+}
+
+/* GFM Subscript & Superscript */
+.ProseMirror sub {
+  font-size: 0.78em;
+  vertical-align: sub;
+  line-height: 0;
+}
+
+.ProseMirror sup {
+  font-size: 0.78em;
+  vertical-align: super;
+  line-height: 0;
+}
+
+/* GFM Underline & Highlight */
+.ProseMirror u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ProseMirror mark {
+  background: rgba(253, 224, 71, 0.22);
+  color: #fef08a;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
 /* Raw Source Editor */
 .source-editor-container {
   display: flex;

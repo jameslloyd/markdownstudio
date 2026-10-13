@@ -25,6 +25,15 @@ import {
   FileSymlink,
   Link as LinkIcon,
   Unlink,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Underline as UnderlineIcon,
+  Keyboard,
+  Highlighter,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  FoldVertical,
 } from 'lucide-react';
 import DiagramModal from './DiagramModal';
 
@@ -46,6 +55,43 @@ export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
         attrs: { code },
       }).run();
     }
+  };
+
+  const insertDetails = () => {
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'details',
+        content: [
+          {
+            type: 'summary',
+            content: [{ type: 'text', text: 'Details Title' }],
+          },
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Collapsible content goes here...' }],
+          },
+        ],
+      })
+      .run();
+  };
+
+  const insertCenteredBlock = () => {
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'htmlDiv',
+        attrs: { align: 'center' },
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Centered block content' }],
+          },
+        ],
+      })
+      .run();
   };
 
   const handlePickImage = async () => {
@@ -191,6 +237,14 @@ export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
           </button>
           <button
             type="button"
+            className={`toolbar-btn ${editor.isActive('underline') ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            title="Underline (<u>)"
+          >
+            <UnderlineIcon size={15} />
+          </button>
+          <button
+            type="button"
             className={`toolbar-btn ${editor.isActive('strike') ? 'active' : ''}`}
             onClick={() => editor.chain().focus().toggleStrike().run()}
             title="Strikethrough"
@@ -204,6 +258,68 @@ export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
             title="Inline Code"
           >
             <Code size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('kbd') ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().toggleMark('kbd').run()}
+            title="Keycap Badge (<kbd>)"
+          >
+            <Keyboard size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('mark') ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().toggleMark('mark').run()}
+            title="Highlight (<mark>)"
+          >
+            <Highlighter size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('subscript') ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().toggleSubscript().run()}
+            title="Subscript (<sub>)"
+          >
+            <SubscriptIcon size={14} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('superscript') ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            title="Superscript (<sup>)"
+          >
+            <SuperscriptIcon size={14} />
+          </button>
+        </div>
+
+        <div className="toolbar-divider" />
+
+        {/* Alignment */}
+        <div className="toolbar-group">
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive({ textAlign: 'left' }) ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            title="Align Left"
+          >
+            <AlignLeft size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive({ textAlign: 'center' }) ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            title="Align Center (<p align='center'> / <div align='center'>)"
+          >
+            <AlignCenter size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive({ textAlign: 'right' }) ? 'active' : ''}`}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            title="Align Right"
+          >
+            <AlignRight size={15} />
           </button>
         </div>
 
@@ -264,6 +380,14 @@ export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
             title="Blockquote"
           >
             <Quote size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('details') ? 'active' : ''}`}
+            onClick={insertDetails}
+            title="Collapsible Section (<details> / <summary>)"
+          >
+            <FoldVertical size={15} />
           </button>
         </div>
 
@@ -359,6 +483,14 @@ export default function Toolbar({ editor, currentFilePath, onSaveRequest }) {
             title="Horizontal Divider"
           >
             <MinusSquare size={15} />
+          </button>
+          <button
+            type="button"
+            className={`toolbar-btn ${editor.isActive('htmlDiv') ? 'active' : ''}`}
+            onClick={insertCenteredBlock}
+            title="Centered Container Block (<div align='center'>)"
+          >
+            <AlignCenter size={15} color="#38bdf8" />
           </button>
         </div>
       </div>

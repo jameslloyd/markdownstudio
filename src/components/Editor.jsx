@@ -7,7 +7,13 @@ import { TaskItem } from '@tiptap/extension-task-item';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import { Markdown } from 'tiptap-markdown';
 import { Link } from '@tiptap/extension-link';
+import { TextAlign } from '@tiptap/extension-text-align';
 
+import { HtmlDiv } from '../extensions/HtmlDiv';
+import { HtmlDetails, HtmlSummary } from '../extensions/HtmlDetails';
+import { HtmlKbd, HtmlUnderline, HtmlSub, HtmlSup, HtmlMark } from '../extensions/HtmlMarks';
+import { CustomParagraph } from '../extensions/HtmlParagraph';
+import { CustomHeading } from '../extensions/HtmlHeading';
 import { MermaidExtension, PlantUMLExtension } from '../extensions/DiagramExtension';
 import { CustomImage } from '../extensions/CustomImage';
 import Toolbar from './Toolbar';
@@ -99,6 +105,21 @@ export default function Editor({
     extensions: [
       StarterKit.configure({
         codeBlock: false, // We use custom code / diagram handling
+        paragraph: false, // We use CustomParagraph for align support
+        heading: false,   // We use CustomHeading for align support
+      }),
+      CustomParagraph,
+      CustomHeading,
+      HtmlDiv,
+      HtmlDetails,
+      HtmlSummary,
+      HtmlKbd,
+      HtmlUnderline,
+      HtmlSub,
+      HtmlSup,
+      HtmlMark,
+      TextAlign.configure({
+        types: ['heading', 'paragraph', 'htmlDiv'],
       }),
       Table.configure({
         resizable: true,
@@ -191,6 +212,7 @@ export default function Editor({
   // Keep editor content in sync when markdown prop changes externally (e.g. file open, source mode edit)
   useEffect(() => {
     if (!editor) return;
+    window.__editor = editor;
 
     const currentEditorMarkdown = serializeContentToMarkdown(editor);
     if (markdown !== currentEditorMarkdown) {
