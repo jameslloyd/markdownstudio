@@ -4,12 +4,14 @@
 
   # Markdown Studio
 
-  **A sleek, native macOS GitHub Flavored Markdown (GFM) editor with live WYSIWYG editing, relative image persistence, and inline diagramming.**
+  **A sleek, native cross-platform GitHub Flavored Markdown (GFM) editor with live WYSIWYG editing, relative image persistence, and inline diagramming for macOS & Windows.**
 
-  [![Platform: macOS](https://img.shields.io/badge/platform-macOS%20%28Apple%20Silicon%20%26%20Intel%29-black?logo=apple)](https://github.com/jameslloyd/markdownstudio)
+  [![Platform: macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%26%20Intel-black?logo=apple)](https://github.com/jameslloyd/markdownstudio)
+  [![Platform: Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%28x64%29-0078d4?logo=windows)](https://github.com/jameslloyd/markdownstudio)
   [![Standard: GFM](https://img.shields.io/badge/spec-GitHub%20Flavored%20Markdown-181717?logo=github)](https://github.github.com/gfm/)
   [![Diagrams: Mermaid](https://img.shields.io/badge/diagrams-Mermaid%2012-ff3670?logo=mermaid)](https://mermaid.js.org/)
   [![Architecture: Electron + React](https://img.shields.io/badge/stack-Electron%20%7C%20React%20%7C%20TipTap-47a248)](https://github.com/jameslloyd/markdownstudio)
+  [![Latest Release](https://img.shields.io/github/v/release/jameslloyd/markdownstudio?color=38bdf8&logo=github)](https://github.com/jameslloyd/markdownstudio/releases/latest)
 
 </div>
 
@@ -96,24 +98,35 @@ npm install
 
 ---
 
-## 📦 Compiling Native macOS Application
+## 📦 Compiling Native Binaries (.app, .dmg, .exe)
 
-Build the standalone `.app` bundle, `.dmg` installer, and `.zip` archive:
+Build standalone installers and portable packages for macOS and Windows:
 
+### 🍏 macOS
 ```bash
 # Compile macOS .dmg installer and .app bundle
 npm run dist
 ```
-
-Generated artifacts are stored in the `release/` directory:
+Generated artifacts in `release/`:
 - `release/Markdown Studio-1.0.0-arm64.dmg` — Drag-and-drop macOS installer
 - `release/mac-arm64/Markdown Studio.app` — Standalone macOS application bundle
 - `release/Markdown Studio-1.0.0-arm64-mac.zip` — Portable distribution archive
 
-To launch the compiled app immediately:
+### 🪟 Windows
 ```bash
-open "release/mac-arm64/Markdown Studio.app"
+# Compile Windows NSIS installer and portable executable
+npm run dist:win
 ```
+Generated artifacts in `release/`:
+- `release/Markdown Studio Setup 1.0.0.exe` — Windows NSIS Installer (with Start Menu & Desktop shortcuts)
+- `release/Markdown Studio 1.0.0.exe` — Standalone Portable executable (no install required)
+- `release/Markdown Studio-1.0.0-win.zip` — Portable distribution ZIP package
+
+---
+
+## 📥 Downloads & Releases
+
+Pre-built binaries for macOS and Windows are available on the [GitHub Releases Page](https://github.com/jameslloyd/markdownstudio/releases/latest).
 
 ---
 

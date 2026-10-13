@@ -11,7 +11,8 @@
     "build": "vite build",
     "start": "electron .",
     "dist": "npm run build && electron-builder --mac",
-    "dist:dir": "npm run build && electron-builder --mac --dir"
+    "dist:dir": "npm run build && electron-builder --mac --dir",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "build": {
     "appId": "com.james.markdownstudio",
@@ -47,6 +48,36 @@
       "gatekeeperAssess": false,
       "identity": null
     },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Markdown Studio"
+    },
     "dmg": {
       "title": "Markdown Studio Installer",
       "contents": [
@@ -72,6 +103,7 @@
     "concurrently": "^10.0.6",
     "electron": "^44.7.1",
     "electron-builder": "^26.15.3",
+    "png-to-ico": "^3.0.2",
     "vite": "^8.3.4",
     "wait-on": "^9.5.1"
   },

@@ -71,17 +71,27 @@ function addRecentFile(filePath) {
 }
 
 function createWindow() {
+  const isMac = process.platform === 'darwin';
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 850,
     minWidth: 860,
     minHeight: 580,
     title: 'Markdown Studio',
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 18, y: 16 },
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
+    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
+    titleBarOverlay: !isMac
+      ? {
+          color: '#0f172a',
+          symbolColor: '#94a3b8',
+          height: 44,
+        }
+      : undefined,
+    trafficLightPosition: isMac ? { x: 18, y: 16 } : undefined,
+    vibrancy: isMac ? 'under-window' : undefined,
+    visualEffectState: isMac ? 'active' : undefined,
     backgroundColor: '#0f172a',
+    icon: isMac ? path.join(__dirname, '../build/icon.icns') : path.join(__dirname, '../build/icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

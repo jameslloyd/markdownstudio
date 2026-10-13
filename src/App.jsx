@@ -49,6 +49,12 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
   }, [settings.theme]);
 
+  // Set platform class on document.body for platform-specific styling
+  useEffect(() => {
+    const platform = window.electronAPI?.platform || (navigator.userAgent.includes('Windows') ? 'win32' : 'darwin');
+    document.body.classList.add(`platform-${platform}`);
+  }, []);
+
   // Load initial settings from Electron
   useEffect(() => {
     if (window.electronAPI) {

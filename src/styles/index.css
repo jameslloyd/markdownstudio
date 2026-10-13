@@ -113,6 +113,10 @@ body,
   z-index: 100;
 }
 
+.platform-win32 .mac-titlebar {
+  padding: 0 140px 0 16px; /* Offset for Windows native minimize/maximize/close controls */
+}
+
 .titlebar-left,
 .titlebar-center,
 .titlebar-right {
