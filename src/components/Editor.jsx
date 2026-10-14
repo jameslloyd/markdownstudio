@@ -107,6 +107,8 @@ export default function Editor({
         codeBlock: false, // We use custom code / diagram handling
         paragraph: false, // We use CustomParagraph for align support
         heading: false,   // We use CustomHeading for align support
+        link: false,      // We configure custom Link below
+        underline: false, // We configure HtmlUnderline below
       }),
       CustomParagraph,
       CustomHeading,

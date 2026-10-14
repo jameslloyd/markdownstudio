@@ -8,9 +8,10 @@
 
   [![Platform: macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%26%20Intel-black?logo=apple)](https://github.com/jameslloyd/markdownstudio)
   [![Platform: Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%28x64%29-0078d4?logo=windows)](https://github.com/jameslloyd/markdownstudio)
+  [![Docker: Ready](https://img.shields.io/badge/Docker-Web%20Container-2496ed?logo=docker&logoColor=white)](https://github.com/jameslloyd/markdownstudio)
   [![Standard: GFM](https://img.shields.io/badge/spec-GitHub%20Flavored%20Markdown-181717?logo=github)](https://github.github.com/gfm/)
   [![Diagrams: Mermaid](https://img.shields.io/badge/diagrams-Mermaid%2012-ff3670?logo=mermaid)](https://mermaid.js.org/)
-  [![Architecture: Electron + React](https://img.shields.io/badge/stack-Electron%20%7C%20React%20%7C%20TipTap-47a248)](https://github.com/jameslloyd/markdownstudio)
+  [![Architecture: Electron + React + Web](https://img.shields.io/badge/stack-Electron%20%7C%20React%20%7C%20Express-47a248)](https://github.com/jameslloyd/markdownstudio)
   [![Latest Release](https://img.shields.io/github/v/release/jameslloyd/markdownstudio?color=38bdf8&logo=github)](https://github.com/jameslloyd/markdownstudio/releases/latest)
 
 </div>
@@ -95,6 +96,49 @@ npm install
   npm run build
   npm start
   ```
+
+- **Web Browser Run** (Runs lightweight Node.js web server on `http://localhost:3000`):
+  ```bash
+  npm run web
+  ```
+
+---
+
+## 🐳 Running on the Web via Docker
+
+Markdown Studio can be deployed and run directly inside a Docker container with zero desktop dependencies, offering full WYSIWYG editing, diagramming, and persistent file storage in any web browser.
+
+### Option 1: Docker Compose (Recommended)
+
+1. Start the container in the background:
+   ```bash
+   docker compose up -d
+   ```
+2. Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
+3. Your markdown documents and pasted images persist in the local `./documents` directory on your host machine.
+4. Stop the container:
+   ```bash
+   docker compose down
+   ```
+
+### Option 2: Docker CLI
+
+1. Build the multi-stage production Docker image:
+   ```bash
+   docker build -t markdown-studio .
+   ```
+2. Run the container with volume mounts for persistence:
+   ```bash
+   docker run -d \
+     --name markdown-studio \
+     -p 3000:3000 \
+     -v "$(pwd)/documents:/app/documents" \
+     -v "$(pwd)/data:/app/data" \
+     markdown-studio
+   ```
 
 ---
 

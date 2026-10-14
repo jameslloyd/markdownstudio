@@ -266,6 +266,90 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave, handleSaveAs, handleOpenFile, handleNewFile]);
 
+  // Jump to heading in document when clicked from outline
+  const handleJumpToHeading = useCallback((heading, index) => {
+    if (mode === 'source') {
+      const textarea = document.querySelector('.source-textarea');
+      if (textarea) {
+        const lines = markdownRef.current.split('\n');
+        let charPos = 0;
+        for (let l = 0; l < lines.length; l++) {
+          if (l === heading.line - 1) {
+            textarea.focus();
+            textarea.setSelectionRange(charPos, charPos + lines[l].length);
+            const lineHeight = 24;
+            textarea.scrollTop = Math.max(0, l * lineHeight - 60);
+            break;
+          }
+          charPos += lines[l].length + 1;
+        }
+      }
+      return;
+    }
+
+    // In WYSIWYG mode
+    const cleanHeadingText = heading.text.toLowerCase().trim();
+
+    // 1. Move editor cursor to target heading position if TipTap is ready (optional)
+    /*
+    if (window.__editor) {
+      try {
+        const { state } = window.__editor;
+        let currentHIndex = 0;
+        state.doc.descendants((node, pos) => {
+          if (node.type.name === 'heading') {
+            if (
+              currentHIndex === index ||
+              node.textContent.toLowerCase().trim() === cleanHeadingText
+            ) {
+              window.__editor.commands.setTextSelection(pos + 1);
+              return false;
+            }
+            currentHIndex++;
+          }
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+    */
+
+    // Query heading elements in .ProseMirror and scroll into view with highlight pulse
+    const headingEls = Array.from(
+      document.querySelectorAll(
+        '.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6'
+      )
+    );
+
+    let targetEl = null;
+    if (
+      headingEls[index] &&
+      headingEls[index].textContent.toLowerCase().trim() === cleanHeadingText
+    ) {
+      targetEl = headingEls[index];
+    } else {
+      targetEl = headingEls.find(
+        (el) => el.textContent.toLowerCase().trim() === cleanHeadingText
+      );
+    }
+
+    if (!targetEl && headingEls[index]) {
+      targetEl = headingEls[index];
+    }
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Apply subtle highlight pulse animation
+      targetEl.style.transition = 'background-color 0.3s ease, border-radius 0.3s ease';
+      targetEl.style.backgroundColor = 'rgba(56, 189, 248, 0.25)';
+      targetEl.style.borderRadius = '4px';
+      setTimeout(() => {
+        targetEl.style.backgroundColor = 'transparent';
+      }, 1400);
+    }
+  }, [mode]);
+
   return (
     <div className="app-container">
       {/* macOS Custom Window Titlebar */}
@@ -360,6 +444,7 @@ export default function App() {
           recentFiles={settings.recentFiles}
           onOpenFileByPath={handleOpenFileByPath}
           onLoadTemplate={handleLoadTemplate}
+          onJumpToHeading={handleJumpToHeading}
         />
 
         {/* Main Content Area */}

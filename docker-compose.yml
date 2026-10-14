@@ -1,0 +1,19 @@
+services:
+  markdown-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: markdown-studio
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      # Mount host documents directory so markdown files and pasted images persist
+      - ./documents:/app/documents
+      # Mount settings data directory for persistent configuration
+      - ./data:/app/data
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - DOCUMENTS_DIR=/app/documents
+      - DATA_DIR=/app/data

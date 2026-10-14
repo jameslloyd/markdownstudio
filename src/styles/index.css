@@ -117,6 +117,10 @@ body,
   padding: 0 140px 0 16px; /* Offset for Windows native minimize/maximize/close controls */
 }
 
+.platform-web .mac-titlebar {
+  padding: 0 16px; /* Balanced padding in standard web browser */
+}
+
 .titlebar-left,
 .titlebar-center,
 .titlebar-right {
@@ -317,6 +321,26 @@ body,
   background: var(--bg-surface);
   color: var(--accent-primary);
   font-weight: 500;
+}
+
+.outline-heading-item {
+  user-select: none;
+}
+
+.outline-heading-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--accent-primary);
+}
+
+.outline-heading-item:hover svg {
+  opacity: 1 !important;
+  color: var(--accent-primary);
+  transform: translateX(2px);
+  transition: transform 0.15s ease;
+}
+
+.outline-heading-item:active {
+  transform: scale(0.98);
 }
 
 /* Content Area */

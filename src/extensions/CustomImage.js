@@ -55,12 +55,15 @@ export const CustomImage = Image.extend({
     const baseDir = window.__currentBaseDir;
 
     if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:') && !src.startsWith('md-local:')) {
+      const cleanRel = src.startsWith('./') ? src.slice(2) : src;
+      const isElectron = !!window.electronAPI?.isElectron;
+
       if (baseDir) {
-        // Build clean path for md-local protocol
-        const cleanRel = src.startsWith('./') ? src.slice(2) : src;
         const normalized = `${baseDir}/${cleanRel}`.replace(/\\/g, '/');
         const absPath = normalized.startsWith('/') ? normalized : `/${normalized}`;
-        displaySrc = `md-local://local${absPath}`;
+        displaySrc = isElectron ? `md-local://local${absPath}` : `/api/raw?path=${encodeURIComponent(normalized)}`;
+      } else {
+        displaySrc = isElectron ? src : `/api/raw?path=${encodeURIComponent(cleanRel)}`;
       }
     }
 

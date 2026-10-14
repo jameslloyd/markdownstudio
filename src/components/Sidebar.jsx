@@ -14,18 +14,31 @@ export default function Sidebar({
   recentFiles,
   onOpenFileByPath,
   onLoadTemplate,
+  onJumpToHeading,
 }) {
   if (!isOpen) return null;
 
-  // Extract headings for outline
+  // Extract headings for outline (supporting # to ###### and <h1-6>)
   const headings = [];
   const lines = markdown.split('\n');
   lines.forEach((line, index) => {
-    const match = line.match(/^(#{1,3})\s+(.*)$/);
-    if (match) {
+    // Markdown headings: # ... to ###### ...
+    const mdMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (mdMatch) {
       headings.push({
-        level: match[1].length,
-        text: match[2].trim(),
+        level: mdMatch[1].length,
+        text: mdMatch[2].replace(/[#*`_~]/g, '').trim(),
+        line: index + 1,
+      });
+      return;
+    }
+
+    // HTML headings: <h1 ...>...</h1>
+    const htmlMatch = line.match(/<h([1-6])(?:[^>]*)>(.*?)<\/h\1>/i);
+    if (htmlMatch) {
+      headings.push({
+        level: parseInt(htmlMatch[1], 10),
+        text: htmlMatch[2].replace(/<[^>]+>/g, '').trim(),
         line: index + 1,
       });
     }
@@ -54,13 +67,14 @@ export default function Sidebar({
           headings.map((h, i) => (
             <div
               key={i}
-              className="sidebar-item"
+              className="sidebar-item outline-heading-item"
               style={{
-                paddingLeft: `${10 + (h.level - 1) * 12}px`,
+                paddingLeft: `${10 + (h.level - 1) * 10}px`,
                 fontSize: h.level === 1 ? '13px' : '12px',
-                fontWeight: h.level === 1 ? 600 : 400,
+                fontWeight: h.level <= 2 ? 600 : 400,
               }}
-              title={h.text}
+              onClick={() => onJumpToHeading && onJumpToHeading(h, i)}
+              title={`Jump to: ${h.text}`}
             >
               <ChevronRight size={11} style={{ opacity: 0.6 }} />
               <span>{h.text}</span>

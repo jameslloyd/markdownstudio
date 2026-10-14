@@ -114,6 +114,33 @@
 }
 
 /* Headings */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  scroll-margin-top: 24px;
+  transition: background-color 0.3s ease;
+}
+
+@keyframes headingJumpPulse {
+  0% {
+    background-color: transparent;
+  }
+  20% {
+    background-color: rgba(56, 189, 248, 0.25);
+    border-radius: 4px;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.heading-jump-highlight {
+  animation: headingJumpPulse 1.4s ease-out;
+}
+
 .ProseMirror h1 {
   font-size: 2.1em;
   font-weight: 700;

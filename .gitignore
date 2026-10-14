@@ -41,3 +41,8 @@ pnpm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Local Docker & Web workspace mounts
+documents/
+data/
+
