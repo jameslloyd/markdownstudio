@@ -1,7 +1,7 @@
 {
   "name": "markdown-studio",
   "productName": "Markdown Studio",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Native macOS GitHub Flavored Markdown Editor with WYSIWYG & Diagramming",
   "main": "electron/main.js",
   "scripts": {
