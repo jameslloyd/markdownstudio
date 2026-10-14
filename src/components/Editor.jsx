@@ -41,13 +41,25 @@ export default function Editor({
 
     // Replace ```mermaid code fences with custom HTML tags
     content = content.replace(/```mermaid\r?\n([\s\S]*?)```/g, (match, p1) => {
-      const encoded = encodeURIComponent(p1.trim());
+      let code = p1.trim();
+      if (code.includes('%20') || code.includes('%0A') || code.includes('%2F') || code.includes('%3E')) {
+        try {
+          code = decodeURIComponent(code);
+        } catch (_) {}
+      }
+      const encoded = encodeURIComponent(code);
       return `<div data-type="mermaid" data-code="${encoded}"></div>`;
     });
 
     // Replace ```plantuml or ```puml code fences
     content = content.replace(/```(?:plantuml|puml)\r?\n([\s\S]*?)```/g, (match, p1) => {
-      const encoded = encodeURIComponent(p1.trim());
+      let code = p1.trim();
+      if (code.includes('%20') || code.includes('%0A') || code.includes('%2F') || code.includes('%3E')) {
+        try {
+          code = decodeURIComponent(code);
+        } catch (_) {}
+      }
+      const encoded = encodeURIComponent(code);
       return `<div data-type="plantuml" data-code="${encoded}"></div>`;
     });
 
@@ -60,11 +72,19 @@ export default function Editor({
 
     // Ensure any data-code attributes are decoded properly if needed
     md = md.replace(/<div data-type="mermaid" data-code="([^"]*)"><\/div>/g, (match, p1) => {
-      return `\`\`\`mermaid\n${decodeURIComponent(p1)}\n\`\`\`\n\n`;
+      let code = p1;
+      try {
+        code = decodeURIComponent(p1);
+      } catch (_) {}
+      return `\`\`\`mermaid\n${code}\n\`\`\`\n\n`;
     });
 
     md = md.replace(/<div data-type="plantuml" data-code="([^"]*)"><\/div>/g, (match, p1) => {
-      return `\`\`\`plantuml\n${decodeURIComponent(p1)}\n\`\`\`\n\n`;
+      let code = p1;
+      try {
+        code = decodeURIComponent(p1);
+      } catch (_) {}
+      return `\`\`\`plantuml\n${code}\n\`\`\`\n\n`;
     });
 
     return md;

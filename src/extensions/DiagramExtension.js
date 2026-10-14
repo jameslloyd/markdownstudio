@@ -12,6 +12,17 @@ export const MermaidExtension = Node.create({
     return {
       code: {
         default: 'graph TD\n  A[Start] --> B[Process]\n  B --> C[Finish]',
+        parseHTML: (element) => {
+          const raw = element.getAttribute('data-code') || element.getAttribute('code') || '';
+          try {
+            return decodeURIComponent(raw);
+          } catch (_) {
+            return raw;
+          }
+        },
+        renderHTML: (attributes) => ({
+          'data-code': encodeURIComponent(attributes.code || ''),
+        }),
       },
     };
   },
@@ -20,15 +31,14 @@ export const MermaidExtension = Node.create({
     return [
       {
         tag: 'div[data-type="mermaid"]',
-        getAttrs: (element) => ({
-          code: element.getAttribute('data-code') || '',
-        }),
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'mermaid', 'data-code': HTMLAttributes.code }];
+    const raw = HTMLAttributes.code || '';
+    const encoded = encodeURIComponent(raw);
+    return ['div', { 'data-type': 'mermaid', 'data-code': encoded }];
   },
 
   addNodeView() {
@@ -40,7 +50,13 @@ export const MermaidExtension = Node.create({
       markdown: {
         serialize(state, node) {
           state.write('```mermaid\n');
-          state.text(node.attrs.code || '', false);
+          let code = node.attrs.code || '';
+          if (code.includes('%20') || code.includes('%0A') || code.includes('%2F') || code.includes('%3E')) {
+            try {
+              code = decodeURIComponent(code);
+            } catch (_) {}
+          }
+          state.text(code, false);
           state.ensureNewLine();
           state.write('```\n\n');
         },
@@ -61,6 +77,17 @@ export const PlantUMLExtension = Node.create({
     return {
       code: {
         default: '@startuml\nAlice -> Bob: Authentication Request\nBob --> Alice: Authentication Response\n@enduml',
+        parseHTML: (element) => {
+          const raw = element.getAttribute('data-code') || element.getAttribute('code') || '';
+          try {
+            return decodeURIComponent(raw);
+          } catch (_) {
+            return raw;
+          }
+        },
+        renderHTML: (attributes) => ({
+          'data-code': encodeURIComponent(attributes.code || ''),
+        }),
       },
     };
   },
@@ -69,15 +96,14 @@ export const PlantUMLExtension = Node.create({
     return [
       {
         tag: 'div[data-type="plantuml"]',
-        getAttrs: (element) => ({
-          code: element.getAttribute('data-code') || '',
-        }),
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'plantuml', 'data-code': HTMLAttributes.code }];
+    const raw = HTMLAttributes.code || '';
+    const encoded = encodeURIComponent(raw);
+    return ['div', { 'data-type': 'plantuml', 'data-code': encoded }];
   },
 
   addNodeView() {
@@ -89,7 +115,13 @@ export const PlantUMLExtension = Node.create({
       markdown: {
         serialize(state, node) {
           state.write('```plantuml\n');
-          state.text(node.attrs.code || '', false);
+          let code = node.attrs.code || '';
+          if (code.includes('%20') || code.includes('%0A') || code.includes('%2F') || code.includes('%3E')) {
+            try {
+              code = decodeURIComponent(code);
+            } catch (_) {}
+          }
+          state.text(code, false);
           state.ensureNewLine();
           state.write('```\n\n');
         },

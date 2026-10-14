@@ -3,8 +3,20 @@ import { NodeViewWrapper } from '@tiptap/react';
 import plantumlEncoder from 'plantuml-encoder';
 import { Code2, Eye, Copy, Check, AlertCircle, ExternalLink } from 'lucide-react';
 
+function getCleanCode(raw) {
+  if (!raw) return '';
+  if (raw.includes('%20') || raw.includes('%0A') || raw.includes('%2F') || raw.includes('%3E')) {
+    try {
+      return decodeURIComponent(raw);
+    } catch (_) {
+      return raw;
+    }
+  }
+  return raw;
+}
+
 export default function PlantUMLBlock({ node, updateAttributes, extension }) {
-  const code = node.attrs.code || '@startuml\nAlice -> Bob: Hello\n@enduml';
+  const code = getCleanCode(node.attrs.code || '@startuml\nAlice -> Bob: Hello\n@enduml');
   const [isEditing, setIsEditing] = useState(false);
   const [localCode, setLocalCode] = useState(code);
   const [imageUrl, setImageUrl] = useState('');
@@ -16,7 +28,7 @@ export default function PlantUMLBlock({ node, updateAttributes, extension }) {
   const serverUrl = window.__appSettings?.plantUmlServer || 'https://www.plantuml.com/plantuml/svg';
 
   useEffect(() => {
-    setLocalCode(node.attrs.code || '');
+    setLocalCode(getCleanCode(node.attrs.code || ''));
   }, [node.attrs.code]);
 
   useEffect(() => {

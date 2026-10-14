@@ -5,8 +5,20 @@ import { Code2, Eye, Copy, Check, AlertCircle, RefreshCw } from 'lucide-react';
 
 let mermaidIdCounter = 0;
 
+function getCleanCode(raw) {
+  if (!raw) return '';
+  if (raw.includes('%20') || raw.includes('%0A') || raw.includes('%2F') || raw.includes('%3E')) {
+    try {
+      return decodeURIComponent(raw);
+    } catch (_) {
+      return raw;
+    }
+  }
+  return raw;
+}
+
 export default function MermaidBlock({ node, updateAttributes }) {
-  const code = node.attrs.code || 'graph TD\n  A[Start] --> B[Finish]';
+  const code = getCleanCode(node.attrs.code || 'graph TD\n  A[Start] --> B[Finish]');
   const [isEditing, setIsEditing] = useState(false);
   const [localCode, setLocalCode] = useState(code);
   const [svgContent, setSvgContent] = useState('');
@@ -15,7 +27,7 @@ export default function MermaidBlock({ node, updateAttributes }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    setLocalCode(node.attrs.code || '');
+    setLocalCode(getCleanCode(node.attrs.code || ''));
   }, [node.attrs.code]);
 
   useEffect(() => {
