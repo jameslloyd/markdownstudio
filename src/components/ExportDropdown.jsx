@@ -40,30 +40,33 @@ export default function ExportDropdown({ fileName, theme = 'dark', onExportSucce
     try {
       if (format === 'html') {
         const fullHtml = await prepareHtmlForExport({ title: baseName, theme });
-        await window.electronAPI.exportHTML({
+        const res = await window.electronAPI.exportHTML({
           html: fullHtml,
           defaultName: `${baseName}.html`,
         });
+        if (res && res.canceled) return;
         if (onExportSuccess) onExportSuccess('HTML');
       } else if (format === 'pdf') {
         const printHtml = await prepareHtmlForExport({ title: baseName, theme: 'light' });
-        await window.electronAPI.exportPDF({
+        const res = await window.electronAPI.exportPDF({
           html: printHtml,
           title: baseName,
           defaultName: `${baseName}.pdf`,
         });
+        if (res && res.canceled) return;
         if (onExportSuccess) onExportSuccess('PDF');
       } else if (format === 'docx') {
         const docxHtml = await prepareDocxHtmlForExport({ title: baseName });
-        await window.electronAPI.exportDocx({
+        const res = await window.electronAPI.exportDocx({
           html: docxHtml,
           defaultName: `${baseName}.docx`,
         });
+        if (res && res.canceled) return;
         if (onExportSuccess) onExportSuccess('Word DOCX');
       }
     } catch (err) {
       console.error(`Export to ${format} failed:`, err);
-      alert(`Export to ${format.toUpperCase()} failed: ${err.message}`);
+      alert(`Export to ${format.toUpperCase()} failed: ${err.message || 'Unknown error'}`);
     } finally {
       setExportingFormat(null);
       setIsOpen(false);

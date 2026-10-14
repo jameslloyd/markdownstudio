@@ -13,44 +13,140 @@ function escapeHtml(text) {
 }
 
 /**
- * Converts an SVG element to a high-DPI base64 PNG data URL
+ * Safely extracts SVG dimensions from viewBox or attributes
+ */
+function getSvgDimensions(svgEl) {
+  let width = 640;
+  let height = 360;
+
+  // 1. Try viewBox
+  const viewBox = svgEl.getAttribute('viewBox');
+  if (viewBox) {
+    const parts = viewBox.trim().split(/[\s,]+/).map(Number);
+    if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+      width = parts[2];
+      height = parts[3];
+      return { width, height };
+    }
+  }
+
+  // 2. Try explicit width/height attributes
+  const wAttr = parseFloat(svgEl.getAttribute('width'));
+  const hAttr = parseFloat(svgEl.getAttribute('height'));
+  if (wAttr > 0 && hAttr > 0) {
+    return { width: wAttr, height: hAttr };
+  }
+
+  // 3. Try style max-width
+  if (svgEl.style && svgEl.style.maxWidth) {
+    const mw = parseFloat(svgEl.style.maxWidth);
+    if (mw > 0) width = mw;
+  }
+
+  // 4. Try getBoundingClientRect if attached
+  if (svgEl.getBoundingClientRect) {
+    const bbox = svgEl.getBoundingClientRect();
+    if (bbox && bbox.width > 0 && bbox.height > 0) {
+      return { width: bbox.width, height: bbox.height };
+    }
+  }
+
+  return { width, height };
+}
+
+/**
+ * Converts an SVG element to a high-DPI base64 PNG data URL.
+ * Guarantees resolution within 2.5s and cleans foreignObjects/styles to prevent canvas tainting.
  */
 export async function svgToPngDataUrl(svgEl) {
   return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.warn('svgToPngDataUrl: operation timed out after 2500ms, using fallback');
+      resolve(null);
+    }, 2500);
+
     try {
-      const svgString = new XMLSerializer().serializeToString(svgEl);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const URL = window.URL || window.webkitURL || window;
-      const blobUrl = URL.createObjectURL(svgBlob);
+      const clone = svgEl.cloneNode(true);
+      const { width, height } = getSvgDimensions(svgEl);
+
+      // Ensure xmlns is present
+      if (!clone.getAttribute('xmlns')) {
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      }
+
+      // Convert foreignObject to SVG text to prevent canvas tainting in Blink/WebKit
+      const foreignObjects = Array.from(clone.querySelectorAll('foreignObject'));
+      foreignObjects.forEach((fo) => {
+        const textContent = (fo.textContent || '').trim();
+        const x = parseFloat(fo.getAttribute('x') || 0);
+        const y = parseFloat(fo.getAttribute('y') || 0);
+        const foWidth = parseFloat(fo.getAttribute('width') || 100);
+        const foHeight = parseFloat(fo.getAttribute('height') || 40);
+
+        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textEl.setAttribute('x', String(x + foWidth / 2));
+        textEl.setAttribute('y', String(y + foHeight / 2 + 4));
+        textEl.setAttribute('text-anchor', 'middle');
+        textEl.setAttribute('dominant-baseline', 'middle');
+        textEl.setAttribute('fill', '#ffffff');
+        textEl.setAttribute('font-family', 'ui-sans-serif, system-ui, -apple-system, sans-serif');
+        textEl.setAttribute('font-size', '13px');
+        textEl.setAttribute('font-weight', '500');
+        textEl.textContent = textContent;
+
+        if (fo.parentNode) {
+          fo.parentNode.replaceChild(textEl, fo);
+        }
+      });
+
+      // Remove any external font @import rules in <style> that could taint the canvas
+      clone.querySelectorAll('style').forEach((styleEl) => {
+        if (styleEl.textContent) {
+          styleEl.textContent = styleEl.textContent.replace(/@import\s+url\([^)]+\);?/gi, '');
+        }
+      });
+
+      // Set explicit pixel dimensions on clone for Image rendering
+      clone.setAttribute('width', String(Math.round(width)));
+      clone.setAttribute('height', String(Math.round(height)));
+
+      const svgString = new XMLSerializer().serializeToString(clone);
+      const dataUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
       const img = new Image();
 
       img.onload = () => {
-        const bbox = svgEl.getBoundingClientRect();
-        const width = bbox.width || 640;
-        const height = bbox.height || 360;
+        clearTimeout(timeout);
+        try {
+          const canvas = document.createElement('canvas');
+          const scale = 2; // 2x for sharp high-DPI rendering in Word
+          canvas.width = Math.round(width * scale);
+          canvas.height = Math.round(height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.scale(scale, scale);
 
-        const canvas = document.createElement('canvas');
-        canvas.width = width * 2;
-        canvas.height = height * 2;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(2, 2);
+          // Fill slate background behind diagram
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, width, height);
 
-        // Fill clean background behind diagram
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.drawImage(img, 0, 0, width, height);
-        URL.revokeObjectURL(blobUrl);
-        resolve(canvas.toDataURL('image/png'));
+          ctx.drawImage(img, 0, 0, width, height);
+          const pngDataUrl = canvas.toDataURL('image/png');
+          resolve(pngDataUrl);
+        } catch (canvasErr) {
+          console.warn('Canvas toDataURL failed or tainted:', canvasErr);
+          resolve(null);
+        }
       };
 
-      img.onerror = () => {
-        URL.revokeObjectURL(blobUrl);
+      img.onerror = (err) => {
+        clearTimeout(timeout);
+        console.warn('Failed to load SVG data URI into image:', err);
         resolve(null);
       };
 
-      img.src = blobUrl;
+      img.src = dataUri;
     } catch (e) {
+      clearTimeout(timeout);
+      console.warn('svgToPngDataUrl exception:', e);
       resolve(null);
     }
   });
@@ -110,7 +206,7 @@ ${getExportStyles(isDark)}
 
 /**
  * Prepares clean HTML suitable for Word (.docx) generation,
- * replacing inline SVGs with base64 PNG images.
+ * converting Mermaid SVGs to high-DPI base64 PNG images and ensuring Word table compatibility.
  */
 export async function prepareDocxHtmlForExport({ title = 'Document' }) {
   const editorEl = document.querySelector('.ProseMirror');
@@ -120,26 +216,74 @@ export async function prepareDocxHtmlForExport({ title = 'Document' }) {
 
   const clone = editorEl.cloneNode(true);
 
-  // Clean editor UI
+  // Clean editor UI controls
   clone.querySelectorAll('.diagram-actions').forEach((el) => el.remove());
   clone.querySelectorAll('.diagram-editor-area').forEach((el) => el.remove());
   clone.querySelectorAll('.diagram-error-banner').forEach((el) => el.remove());
   clone.querySelectorAll('.diagram-badge').forEach((el) => el.remove());
   clone.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
 
+  // Convert PlantUML SVG links to direct PNG rendering for Word
+  clone.querySelectorAll('img').forEach((img) => {
+    if (img.src && img.src.includes('plantuml.com/plantuml/svg/')) {
+      img.src = img.src.replace('/plantuml/svg/', '/plantuml/png/');
+    }
+  });
+
   // Convert Mermaid SVGs to high-res PNG image tags
   const svgs = Array.from(clone.querySelectorAll('svg'));
   for (const svg of svgs) {
+    const { width, height } = getSvgDimensions(svg);
     const png = await svgToPngDataUrl(svg);
+
     if (png) {
       const img = document.createElement('img');
       img.src = png;
-      const bbox = svg.getBoundingClientRect();
-      img.width = Math.min(bbox.width || 600, 650);
+      img.width = Math.min(Math.round(width) || 600, 650);
       img.alt = 'Mermaid Diagram';
-      svg.parentNode.replaceChild(img, svg);
+      if (svg.parentNode) {
+        svg.parentNode.replaceChild(img, svg);
+      }
+    } else {
+      // Safe fallback: replace SVG with a formatted diagram block so Word never hangs or drops content
+      const diagramContainer = svg.closest('[data-type="mermaid"]');
+      const rawCode = diagramContainer?.getAttribute('data-code');
+      const fallbackDiv = document.createElement('div');
+      fallbackDiv.style.backgroundColor = '#1e293b';
+      fallbackDiv.style.color = '#f8fafc';
+      fallbackDiv.style.padding = '12px';
+      fallbackDiv.style.margin = '12px 0';
+      fallbackDiv.style.border = '1px solid #334155';
+      fallbackDiv.style.borderRadius = '6px';
+      fallbackDiv.style.fontFamily = 'monospace';
+
+      let cleanCode = '';
+      if (rawCode) {
+        try {
+          cleanCode = decodeURIComponent(rawCode);
+        } catch (_) {
+          cleanCode = rawCode;
+        }
+      }
+
+      fallbackDiv.innerHTML = `<p style="margin:0 0 6px 0; font-weight: bold; color: #38bdf8;">📊 Diagram (Mermaid):</p><pre style="margin:0;"><code>${escapeHtml(cleanCode || 'Mermaid Diagram')}</code></pre>`;
+      if (svg.parentNode) {
+        svg.parentNode.replaceChild(fallbackDiv, svg);
+      }
     }
   }
+
+  // Ensure task list checkboxes are styled nicely
+  clone.querySelectorAll('input[type="checkbox"]').forEach((box) => {
+    const isChecked = box.checked || box.hasAttribute('checked');
+    const span = document.createElement('span');
+    span.style.fontFamily = 'monospace';
+    span.style.marginRight = '8px';
+    span.textContent = isChecked ? '☑ ' : '☐ ';
+    if (box.parentNode) {
+      box.parentNode.replaceChild(span, box);
+    }
+  });
 
   // Ensure tables have standard Word attributes
   clone.querySelectorAll('table').forEach((table) => {
