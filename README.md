@@ -62,10 +62,14 @@
 - **Diagramming Support (Mermaid & PlantUML)**:
   - **Mermaid**: 100% local, client-side offline SVG engine with live in-place code editing, syntax error validation, and SVG export.
   - **PlantUML**: Live diagram rendering via URL Deflate encoding with configurable server endpoints.
-- **macOS Native Aesthetics & Integration**:
-  - Native macOS inset titlebar (`hiddenInset`) with integrated traffic light buttons.
-  - System application menu with full keyboard shortcuts (<kbd>Cmd</kbd> + <kbd>N</kbd>, <kbd>Cmd</kbd> + <kbd>O</kbd>, <kbd>Cmd</kbd> + <kbd>S</kbd>, <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, <kbd>Cmd</kbd> + <kbd>,</kbd>).
-  - Collapsible Table of Contents (Outline) drawer, word and character counters, and reading time estimation.
+- **Multi-Format Export (HTML, PDF, DOCX)**:
+  - **Standalone HTML (.html)** (<kbd>Cmd/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd>): Self-contained offline document with inline GitHub Markdown CSS, table styling, code block highlighting, and vector SVG Mermaid diagrams.
+  - **Print-Ready PDF (.pdf)** (<kbd>Cmd/Ctrl</kbd> + <kbd>P</kbd>): High-DPI vectorized PDF with page-break optimizations and diagram preservation. Native headless print in Electron; instant browser print preview in Web mode.
+  - **Microsoft Word (.docx)** (<kbd>Cmd/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>): Formatted Word document with native Word tables, headings, lists, blockquotes, and Mermaid SVGs automatically converted to embedded high-resolution images.
+- **macOS & Windows Native Aesthetics & Integration**:
+  - Native macOS inset titlebar (`hiddenInset`) and custom Windows frameless window with native controls.
+  - System application menu with full keyboard shortcuts (<kbd>Cmd/Ctrl</kbd> + <kbd>N</kbd>, <kbd>Cmd/Ctrl</kbd> + <kbd>O</kbd>, <kbd>Cmd/Ctrl</kbd> + <kbd>S</kbd>, <kbd>Cmd/Ctrl</kbd> + <kbd>P</kbd>, <kbd>Cmd/Ctrl</kbd> + <kbd>,</kbd>).
+  - Collapsible Table of Contents (Outline) drawer with instant heading jump-links, word/character counters, and reading time estimation.
   - Glassmorphic dark theme and crisp light theme.
 
 ---

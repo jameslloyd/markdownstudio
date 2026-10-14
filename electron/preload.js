@@ -23,6 +23,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
 
+  // Export operations
+  exportPDF: ({ html, title, defaultName }) =>
+    ipcRenderer.invoke('export:pdf', { html, title, defaultName }),
+  exportHTML: ({ html, defaultName }) =>
+    ipcRenderer.invoke('export:html', { html, defaultName }),
+  exportDocx: ({ html, defaultName }) =>
+    ipcRenderer.invoke('export:docx', { html, defaultName }),
+
   // Menu and system event listeners
   onMenuNewFile: (callback) => {
     const handler = () => callback();
@@ -43,6 +51,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const handler = () => callback();
     ipcRenderer.on('menu:save-as', handler);
     return () => ipcRenderer.removeListener('menu:save-as', handler);
+  },
+  onMenuExportPDF: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('menu:export-pdf', handler);
+    return () => ipcRenderer.removeListener('menu:export-pdf', handler);
+  },
+  onMenuExportHTML: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('menu:export-html', handler);
+    return () => ipcRenderer.removeListener('menu:export-html', handler);
+  },
+  onMenuExportDocx: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('menu:export-docx', handler);
+    return () => ipcRenderer.removeListener('menu:export-docx', handler);
   },
   onMenuToggleMode: (callback) => {
     const handler = () => callback();

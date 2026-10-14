@@ -347,6 +347,28 @@ app.get('/api/raw', (req, res) => {
   res.sendFile(target);
 });
 
+// DOCX export endpoint
+app.post('/api/export/docx', async (req, res) => {
+  try {
+    const { html, filename = 'document.docx' } = req.body;
+    if (!html) return res.status(400).json({ error: 'No HTML content provided' });
+
+    const HTMLtoDOCX = require('html-to-docx');
+    const docxBuffer = await HTMLtoDOCX(html, null, {
+      table: { row: { cantSplit: true } },
+      footer: true,
+      pageNumber: true,
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.send(docxBuffer);
+  } catch (err) {
+    console.error('DOCX export error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve static frontend assets from dist/
 const distPath = path.join(__dirname, '../dist');
 if (fs.existsSync(distPath)) {

@@ -178,6 +178,33 @@ function setupMenu() {
           },
         },
         { type: 'separator' },
+        {
+          label: 'Export',
+          submenu: [
+            {
+              label: 'Export as PDF...',
+              accelerator: 'CmdOrCtrl+P',
+              click: () => {
+                if (mainWindow) mainWindow.webContents.send('menu:export-pdf');
+              },
+            },
+            {
+              label: 'Export as Standalone HTML...',
+              accelerator: 'CmdOrCtrl+Shift+H',
+              click: () => {
+                if (mainWindow) mainWindow.webContents.send('menu:export-html');
+              },
+            },
+            {
+              label: 'Export as Word Document (.docx)...',
+              accelerator: 'CmdOrCtrl+Shift+D',
+              click: () => {
+                if (mainWindow) mainWindow.webContents.send('menu:export-docx');
+              },
+            },
+          ],
+        },
+        { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' },
       ],
     },
@@ -472,4 +499,112 @@ ipcMain.handle('app:resolveRelativePath', async (event, { relativePath, currentF
     return { exists: false, error: err.message };
   }
 });
+
+// Export operations
+ipcMain.handle('export:pdf', async (event, { html, title = 'Document', defaultName = 'Untitled.pdf' }) => {
+  let targetDefault = defaultName.replace(/\.[^/.]+$/, '') + '.pdf';
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export as PDF',
+    defaultPath: targetDefault,
+    filters: [
+      { name: 'PDF Document', extensions: ['pdf'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
+  });
+
+  if (result.canceled || !result.filePath) {
+    return { canceled: true };
+  }
+
+  const printWindow = new BrowserWindow({
+    show: false,
+    width: 1024,
+    height: 768,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  try {
+    await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+    // Allow brief time for fonts and layout to settle
+    await new Promise((r) => setTimeout(r, 600));
+
+    const pdfBuffer = await printWindow.webContents.printToPDF({
+      printBackground: true,
+      pageSize: 'A4',
+      margins: {
+        marginType: 'custom',
+        top: 0.6,
+        bottom: 0.6,
+        left: 0.6,
+        right: 0.6,
+      },
+    });
+
+    fs.writeFileSync(result.filePath, pdfBuffer);
+    printWindow.destroy();
+
+    return { canceled: false, filePath: result.filePath };
+  } catch (err) {
+    console.error('PDF export error:', err);
+    if (!printWindow.isDestroyed()) printWindow.destroy();
+    return { canceled: false, error: err.message };
+  }
+});
+
+ipcMain.handle('export:html', async (event, { html, defaultName = 'Untitled.html' }) => {
+  let targetDefault = defaultName.replace(/\.[^/.]+$/, '') + '.html';
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export as Standalone HTML',
+    defaultPath: targetDefault,
+    filters: [
+      { name: 'HTML Document', extensions: ['html', 'htm'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
+  });
+
+  if (result.canceled || !result.filePath) {
+    return { canceled: true };
+  }
+
+  try {
+    fs.writeFileSync(result.filePath, html, 'utf8');
+    return { canceled: false, filePath: result.filePath };
+  } catch (err) {
+    return { canceled: false, error: err.message };
+  }
+});
+
+ipcMain.handle('export:docx', async (event, { html, defaultName = 'Untitled.docx' }) => {
+  let targetDefault = defaultName.replace(/\.[^/.]+$/, '') + '.docx';
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export as Word Document',
+    defaultPath: targetDefault,
+    filters: [
+      { name: 'Word Document', extensions: ['docx'] },
+      { name: 'All Files', extensions: ['*'] },
+    ],
+  });
+
+  if (result.canceled || !result.filePath) {
+    return { canceled: true };
+  }
+
+  try {
+    const HTMLtoDOCX = require('html-to-docx');
+    const docxBuffer = await HTMLtoDOCX(html, null, {
+      table: { row: { cantSplit: true } },
+      footer: true,
+      pageNumber: true,
+    });
+    fs.writeFileSync(result.filePath, docxBuffer);
+    return { canceled: false, filePath: result.filePath };
+  } catch (err) {
+    console.error('DOCX export error:', err);
+    return { canceled: false, error: err.message };
+  }
+});
+
 

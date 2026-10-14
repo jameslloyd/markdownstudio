@@ -8,6 +8,9 @@ const eventListeners = {
   openFile: new Set(),
   saveFile: new Set(),
   saveAs: new Set(),
+  exportPDF: new Set(),
+  exportHTML: new Set(),
+  exportDocx: new Set(),
   toggleMode: new Set(),
   openSettings: new Set(),
   settingsUpdated: new Set(),
@@ -696,6 +699,89 @@ export function initWebApi() {
       return { success: true };
     },
 
+    // Export operations
+    exportPDF: async ({ html, title = 'Document', defaultName = 'Untitled.pdf' }) => {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+
+      await new Promise((r) => setTimeout(r, 500));
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      setTimeout(() => iframe.remove(), 1200);
+
+      return { canceled: false };
+    },
+
+    exportHTML: async ({ html, defaultName = 'Untitled.html' }) => {
+      const filename = defaultName.replace(/\.[^/.]+$/, '') + '.html';
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      return { canceled: false, fileName: filename };
+    },
+
+    exportDocx: async ({ html, defaultName = 'Untitled.docx' }) => {
+      const filename = defaultName.replace(/\.[^/.]+$/, '') + '.docx';
+      try {
+        const res = await fetch('/api/export/docx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ html, filename }),
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(url);
+          return { canceled: false, fileName: filename };
+        }
+      } catch (err) {
+        console.error('Failed to export DOCX via API:', err);
+      }
+
+      // Standalone client fallback if backend unreachable
+      try {
+        const HTMLtoDOCX = (await import('html-to-docx')).default;
+        const docxBuffer = await HTMLtoDOCX(html, null, {
+          table: { row: { cantSplit: true } },
+          footer: true,
+          pageNumber: true,
+        });
+        const blob = new Blob([docxBuffer], {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        return { canceled: false, fileName: filename };
+      } catch (clientErr) {
+        console.error('Client-side DOCX generation failed:', clientErr);
+        throw clientErr;
+      }
+    },
+
     // Event listeners
     onMenuNewFile: (callback) => {
       eventListeners.newFile.add(callback);
@@ -712,6 +798,18 @@ export function initWebApi() {
     onMenuSaveAs: (callback) => {
       eventListeners.saveAs.add(callback);
       return () => eventListeners.saveAs.delete(callback);
+    },
+    onMenuExportPDF: (callback) => {
+      eventListeners.exportPDF.add(callback);
+      return () => eventListeners.exportPDF.delete(callback);
+    },
+    onMenuExportHTML: (callback) => {
+      eventListeners.exportHTML.add(callback);
+      return () => eventListeners.exportHTML.delete(callback);
+    },
+    onMenuExportDocx: (callback) => {
+      eventListeners.exportDocx.add(callback);
+      return () => eventListeners.exportDocx.delete(callback);
     },
     onMenuToggleMode: (callback) => {
       eventListeners.toggleMode.add(callback);

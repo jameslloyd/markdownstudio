@@ -4,6 +4,8 @@ import SourceEditor from './components/SourceEditor';
 import Sidebar from './components/Sidebar';
 import StatusBar from './components/StatusBar';
 import SettingsModal from './components/SettingsModal';
+import ExportDropdown from './components/ExportDropdown';
+import { prepareHtmlForExport, prepareDocxHtmlForExport } from './utils/exportDocument';
 import { STARTER_TEMPLATES } from './utils/starterTemplates';
 import {
   FileText,
@@ -15,6 +17,7 @@ import {
   Code2,
   Eye,
   Plus,
+  Check,
 } from 'lucide-react';
 
 export default function App() {
@@ -209,6 +212,60 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [markdown, isDirty, filePath, settings.autoSave, settings.autoSaveInterval, handleSave]);
 
+  // Toast Notification state
+  const [toastMessage, setToastMessage] = useState(null);
+  const showToast = useCallback((msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  }, []);
+
+  // Export handlers
+  const handleExportPDF = useCallback(async () => {
+    if (!window.electronAPI) return;
+    try {
+      const baseName = fileName ? fileName.replace(/\.[^/.]+$/, '') : 'Document';
+      const printHtml = await prepareHtmlForExport({ title: baseName, theme: 'light' });
+      await window.electronAPI.exportPDF({
+        html: printHtml,
+        title: baseName,
+        defaultName: `${baseName}.pdf`,
+      });
+      showToast('Document exported as PDF successfully!');
+    } catch (err) {
+      console.error('Export PDF failed:', err);
+    }
+  }, [fileName, showToast]);
+
+  const handleExportHTML = useCallback(async () => {
+    if (!window.electronAPI) return;
+    try {
+      const baseName = fileName ? fileName.replace(/\.[^/.]+$/, '') : 'Document';
+      const fullHtml = await prepareHtmlForExport({ title: baseName, theme: settings.theme });
+      await window.electronAPI.exportHTML({
+        html: fullHtml,
+        defaultName: `${baseName}.html`,
+      });
+      showToast('Document exported as HTML successfully!');
+    } catch (err) {
+      console.error('Export HTML failed:', err);
+    }
+  }, [fileName, settings.theme, showToast]);
+
+  const handleExportDocx = useCallback(async () => {
+    if (!window.electronAPI) return;
+    try {
+      const baseName = fileName ? fileName.replace(/\.[^/.]+$/, '') : 'Document';
+      const docxHtml = await prepareDocxHtmlForExport({ title: baseName });
+      await window.electronAPI.exportDocx({
+        html: docxHtml,
+        defaultName: `${baseName}.docx`,
+      });
+      showToast('Document exported as Word (.docx) successfully!');
+    } catch (err) {
+      console.error('Export DOCX failed:', err);
+    }
+  }, [fileName, showToast]);
+
   // Wire Electron menu & keyboard listeners
   useEffect(() => {
     if (!window.electronAPI) return;
@@ -217,6 +274,9 @@ export default function App() {
     const unsubOpen = window.electronAPI.onMenuOpenFile(handleOpenFile);
     const unsubSave = window.electronAPI.onMenuSaveFile(handleSave);
     const unsubSaveAs = window.electronAPI.onMenuSaveAs(handleSaveAs);
+    const unsubExportPDF = window.electronAPI.onMenuExportPDF ? window.electronAPI.onMenuExportPDF(handleExportPDF) : () => {};
+    const unsubExportHTML = window.electronAPI.onMenuExportHTML ? window.electronAPI.onMenuExportHTML(handleExportHTML) : () => {};
+    const unsubExportDocx = window.electronAPI.onMenuExportDocx ? window.electronAPI.onMenuExportDocx(handleExportDocx) : () => {};
     const unsubToggle = window.electronAPI.onMenuToggleMode(() => {
       setMode((prev) => (prev === 'wysiwyg' ? 'source' : 'wysiwyg'));
     });
@@ -230,13 +290,16 @@ export default function App() {
       unsubOpen();
       unsubSave();
       unsubSaveAs();
+      unsubExportPDF();
+      unsubExportHTML();
+      unsubExportDocx();
       unsubToggle();
       unsubSettings();
       unsubSettingsUpdated();
     };
-  }, [handleNewFile, handleOpenFile, handleSave, handleSaveAs]);
+  }, [handleNewFile, handleOpenFile, handleSave, handleSaveAs, handleExportPDF, handleExportHTML, handleExportDocx]);
 
-  // Global Keyboard shortcuts (macOS Cmd+S, Cmd+O, Cmd+E, etc.)
+  // Global Keyboard shortcuts (macOS Cmd+S, Cmd+O, Cmd+P, etc.)
   useEffect(() => {
     const handleKeyDown = (e) => {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -253,6 +316,15 @@ export default function App() {
       } else if (isCmdOrCtrl && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         handleNewFile();
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        handleExportPDF();
+      } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        handleExportHTML();
+      } else if (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        handleExportDocx();
       } else if (isCmdOrCtrl && e.key.toLowerCase() === 'e') {
         e.preventDefault();
         setMode((prev) => (prev === 'wysiwyg' ? 'source' : 'wysiwyg'));
@@ -264,7 +336,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, handleSaveAs, handleOpenFile, handleNewFile]);
+  }, [handleSave, handleSaveAs, handleOpenFile, handleNewFile, handleExportPDF, handleExportHTML, handleExportDocx]);
 
   // Jump to heading in document when clicked from outline
   const handleJumpToHeading = useCallback((heading, index) => {
@@ -424,6 +496,11 @@ export default function App() {
             <Save size={14} />
             <span>Save</span>
           </button>
+          <ExportDropdown
+            fileName={fileName}
+            theme={settings.theme}
+            onExportSuccess={(fmt) => showToast(`Document exported as ${fmt} successfully!`)}
+          />
           <button
             type="button"
             className="btn-icon"
@@ -449,7 +526,16 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="app-content">
-          {mode === 'wysiwyg' ? (
+          <div
+            style={{
+              display: mode === 'wysiwyg' ? 'flex' : 'none',
+              height: '100%',
+              width: '100%',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
             <Editor
               markdown={markdown}
               onChange={handleContentChange}
@@ -459,7 +545,8 @@ export default function App() {
               onSaveRequest={handleSave}
               onNavigateToFile={handleNavigateToFile}
             />
-          ) : (
+          </div>
+          {mode === 'source' && (
             <SourceEditor
               markdown={markdown}
               onChange={handleContentChange}
@@ -486,6 +573,14 @@ export default function App() {
           onSave={handleSaveSettings}
           onClose={() => setIsSettingsOpen(false)}
         />
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="export-toast">
+          <Check size={14} color="#10b981" />
+          <span>{toastMessage}</span>
+        </div>
       )}
     </div>
   );
